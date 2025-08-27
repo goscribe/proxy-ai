@@ -8,6 +8,8 @@ A simple Express.js server with CORS (Cross-Origin Resource Sharing) enabled for
 - ✅ JSON body parsing and error handling
 - ✅ Health check endpoint with service status
 - ✅ Cohere AI inference endpoint
+- ✅ Google Cloud Storage proxy with secure URLs
+- ✅ File upload, download, and management
 - ✅ API documentation endpoint
 - ✅ Environment variable configuration
 
@@ -20,8 +22,23 @@ npm install
 
 2. Set up environment variables:
 ```bash
-# Create .env file and add your API key
+# Create .env file and add your API keys
 echo "COHERE_API_KEY=your_cohere_api_key_here" > .env
+echo "GOOGLE_CLOUD_BUCKET_NAME=your_bucket_name" >> .env
+
+# Google Cloud Configuration (choose one option):
+# Option 1: Using key file
+echo "GCP_PROJECT_ID=your_project_id" >> .env
+echo "GCP_KEY_FILE=path/to/service-account-key.json" >> .env
+
+# Option 2: Using individual credentials
+echo "GCP_PROJECT_ID=your_project_id" >> .env
+echo "GCP_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com" >> .env
+echo "GCP_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n..." >> .env
+
+# Option 3: Legacy variable names (still supported)
+echo "GOOGLE_CLOUD_PROJECT_ID=your_project_id" >> .env
+echo "GOOGLE_CLOUD_KEY_FILE=path/to/service-account-key.json" >> .env
 ```
 
 3. Start the server:
@@ -45,6 +62,11 @@ The server will start on `http://localhost:3000` (or the port specified in the `
 - `GET /api/docs` - API documentation
 - `POST /api/data` - Example endpoint that accepts JSON data
 - `POST /api/cohere/inference` - Cohere AI text generation
+- `POST /api/gcs/upload` - Upload file to Google Cloud Storage
+- `GET /api/gcs/download/:fileName` - Get signed URL for file download
+- `GET /api/gcs/files` - List all files in GCS bucket
+- `DELETE /api/gcs/files/:fileName` - Delete file from GCS bucket
+- `GET /api/gcs/files/:fileName/metadata` - Get file metadata
 
 ### Testing with curl
 
@@ -71,6 +93,16 @@ curl http://localhost:3000/api/models
 # Get API documentation
 curl http://localhost:3000/api/docs
 
+# Test GCS file upload (replace with actual file)
+curl -X POST http://localhost:3000/api/gcs/upload \
+  -F "file=@/path/to/your/file.jpg"
+
+# List GCS files
+curl http://localhost:3000/api/gcs/files
+
+# Get download URL for a file
+curl http://localhost:3000/api/gcs/download/1234567890-abc123.jpg
+
 ### CORS Configuration
 
 The server is configured to allow all origins for development. For production, you should modify the `corsOptions` in `server.js` to specify allowed origins:
@@ -83,6 +115,23 @@ const allowedOrigins = ['http://localhost:3000', 'https://yourdomain.com'];
 
 - `PORT` - Server port (default: 3000)
 - `COHERE_API_KEY` - Your Cohere API key
+- `GOOGLE_CLOUD_BUCKET_NAME` - Your GCS bucket name
+
+### Google Cloud Configuration (choose one option):
+
+**Option 1: Using key file**
+- `GCP_PROJECT_ID` - Your Google Cloud Project ID
+- `GCP_KEY_FILE` - Path to service account key file
+
+**Option 2: Using individual credentials**
+- `GCP_PROJECT_ID` - Your Google Cloud Project ID
+- `GCP_CLIENT_EMAIL` - Service account email
+- `GCP_PRIVATE_KEY` - Service account private key (with \n for newlines)
+
+**Option 3: Legacy variable names (still supported)**
+- `GOOGLE_CLOUD_PROJECT_ID` - Your Google Cloud Project ID
+- `GOOGLE_CLOUD_KEY_FILE` - Path to service account key file
+
 - `NODE_ENV` - Environment (development/production)
 
 
